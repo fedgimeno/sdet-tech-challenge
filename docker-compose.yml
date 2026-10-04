@@ -1,0 +1,23 @@
+services:
+  sdet-api:
+    image: ghcr.io/danielsilva-loanpro/sdet-interview-challenge:latest
+    container_name: sdet-api
+    ports:
+      - "127.0.0.1:3000:3000"
+
+  swagger-ui:
+    image: docker.swagger.io/swaggerapi/swagger-ui:latest
+    environment:
+      URL: /sdet_challenge_api.yaml
+      TRY_IT_OUT_ENABLED: "true"
+
+  spec-server:
+    image: nginx:alpine
+    ports:
+      - "127.0.0.1:8080:80"
+    volumes:
+      - ./tests/specs:/usr/share/nginx/html:ro
+      - ./nginx/spec-server.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - sdet-api
+      - swagger-ui

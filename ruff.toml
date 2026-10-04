@@ -1,0 +1,12 @@
+target-version = "py312"
+line-length = 100
+
+# --- Linter Settings ---
+[lint]
+select = [
+    "F",    # Pyflakes (errors)
+    "E",    # pycodestyle errors
+    "W",    # pycodestyle warnings
+    "I",    # isort (import sorting)
+    "B",    # flake8-bugbear (common design issues)
+]

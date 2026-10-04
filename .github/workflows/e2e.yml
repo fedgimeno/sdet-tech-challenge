@@ -1,0 +1,99 @@
+name: API E2E
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  code-quality:
+    name: Ruff lint and formatting
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Check Python code
+        run: |
+          python -m ruff check .
+          python -m ruff format --check .
+
+  e2e-dev:
+    name: e2e-dev
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_URL: http://localhost:3000
+      TARGET_ENV: dev
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Start challenge API
+        run: docker run --detach --rm --name sdet-api -p 127.0.0.1:3000:3000 ghcr.io/danielsilva-loanpro/sdet-interview-challenge:latest
+      - name: Wait for API
+        run: python -m scripts.wait_for_api --timeout 60
+      - name: Run dev tests
+        run: python -m pytest -m e2e --html=reports/dev-report.html --self-contained-html --junitxml=reports/dev-junit.xml
+      - name: Collect diagnostics
+        if: always()
+        run: python -m scripts.collect_diagnostics
+      - name: Upload reports and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-dev-reports
+          path: reports/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Stop challenge API
+        if: always()
+        run: docker stop sdet-api
+
+  e2e-prod:
+    name: e2e-prod
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      BASE_URL: http://localhost:3000
+      TARGET_ENV: prod
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.12'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install -r requirements.txt
+      - name: Start challenge API
+        run: docker run --detach --rm --name sdet-api -p 127.0.0.1:3000:3000 ghcr.io/danielsilva-loanpro/sdet-interview-challenge:latest
+      - name: Wait for API
+        run: python -m scripts.wait_for_api --timeout 60
+      - name: Run prod tests
+        run: python -m pytest -m e2e --html=reports/prod-report.html --self-contained-html --junitxml=reports/prod-junit.xml
+      - name: Collect diagnostics
+        if: always()
+        run: python -m scripts.collect_diagnostics
+      - name: Upload reports and diagnostics
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: e2e-prod-reports
+          path: reports/
+          if-no-files-found: error
+          retention-days: 14
+      - name: Stop challenge API
+        if: always()
+        run: docker stop sdet-api

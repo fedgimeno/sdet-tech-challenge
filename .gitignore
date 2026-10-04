@@ -1,0 +1,9 @@
+# Local Python environment and caches
+.venv/
+__pycache__/
+.pytest_cache/
+.ruff_cache/
+
+# Generated test reports; keep the directory for CI
+reports/*
+!reports/.gitkeep
