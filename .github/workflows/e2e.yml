@@ -4,6 +4,16 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      target_env:
+        description: Environment to test
+        type: choice
+        required: true
+        default: both
+        options:
+          - dev
+          - prod
+          - both
 
 permissions:
   contents: read
@@ -28,6 +38,7 @@ jobs:
 
   e2e-dev:
     name: e2e-dev
+    if: github.event_name != 'workflow_dispatch' || inputs.target_env == 'dev' || inputs.target_env == 'both'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -46,16 +57,16 @@ jobs:
       - name: Wait for API
         run: python -m scripts.wait_for_api --timeout 60
       - name: Run dev tests
-        run: python -m pytest -m e2e --html=reports/dev-report.html --self-contained-html --junitxml=reports/dev-junit.xml
+        run: python -m pytest -m e2e --html=reports/dev/report.html --self-contained-html --junitxml=reports/dev/junit.xml
       - name: Collect diagnostics
         if: always()
-        run: python -m scripts.collect_diagnostics
+        run: python -m scripts.collect_diagnostics --output reports/dev/diagnostics
       - name: Upload reports and diagnostics
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: e2e-dev-reports
-          path: reports/
+          path: reports/dev/
           if-no-files-found: error
           retention-days: 14
       - name: Stop challenge API
@@ -64,6 +75,7 @@ jobs:
 
   e2e-prod:
     name: e2e-prod
+    if: github.event_name != 'workflow_dispatch' || inputs.target_env == 'prod' || inputs.target_env == 'both'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     env:
@@ -82,16 +94,16 @@ jobs:
       - name: Wait for API
         run: python -m scripts.wait_for_api --timeout 60
       - name: Run prod tests
-        run: python -m pytest -m e2e --html=reports/prod-report.html --self-contained-html --junitxml=reports/prod-junit.xml
+        run: python -m pytest -m e2e --html=reports/prod/report.html --self-contained-html --junitxml=reports/prod/junit.xml
       - name: Collect diagnostics
         if: always()
-        run: python -m scripts.collect_diagnostics
+        run: python -m scripts.collect_diagnostics --output reports/prod/diagnostics
       - name: Upload reports and diagnostics
         if: always()
         uses: actions/upload-artifact@v7
         with:
           name: e2e-prod-reports
-          path: reports/
+          path: reports/prod/
           if-no-files-found: error
           retention-days: 14
       - name: Stop challenge API

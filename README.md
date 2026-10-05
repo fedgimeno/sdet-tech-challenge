@@ -41,12 +41,14 @@ To create an HTML and JUnit report locally, run, for example:
 
 ```bash
 TARGET_ENV=dev python -m pytest -m e2e \
-  --html=reports/dev-report.html --self-contained-html \
-  --junitxml=reports/dev-junit.xml
+  --html=reports/dev/report.html --self-contained-html \
+  --junitxml=reports/dev/junit.xml
 ```
 
 The [GitHub Actions workflow](.github/workflows/e2e.yml) runs `dev` and `prod`
-in parallel and uploads reports for each environment as artifacts.
+in parallel for pushes and pull requests. For a manual run, select `dev`, `prod`,
+or `both` (the default). Each job writes its HTML and JUnit reports and
+diagnostics to `reports/dev/` or `reports/prod/`, then uploads only that folder.
 
 ## Configuration
 
