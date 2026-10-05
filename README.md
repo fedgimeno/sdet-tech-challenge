@@ -31,6 +31,12 @@ against the same API instance used by the tests. Stop and remove the stack with
 Some tests are marked as expected failures for the defects in [BUGS.md](BUGS.md).
 An unexpected pass fails the run so the marker can be reviewed.
 
+The API client logs each request's method, URL, authentication presence, status,
+elapsed time, and up to 500 characters of the response body. Pytest captures these
+logs with each test, keeping normal output quiet while showing them for failures.
+Request bodies and authentication header values are never logged. Request errors
+log the exception type before being raised again.
+
 To create an HTML and JUnit report locally, run, for example:
 
 ```bash
