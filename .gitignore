@@ -5,5 +5,5 @@ __pycache__/
 .ruff_cache/
 
 # Generated test reports; keep the directory for CI
-reports/*
-!reports/.gitkeep
+#reports/*
+#!reports/.gitkeep
